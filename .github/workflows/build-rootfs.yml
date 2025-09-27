@@ -1,0 +1,28 @@
+name: CI Build RootFS (Buildroot)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-rootfs:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build Docker image for Buildroot
+        run: docker build -t buildroot-builder:lab6 lab6-rootfs
+
+      - name: Run Buildroot in container
+        # mount workspace so artifact will be available after container exits
+        run: |
+          docker run --rm -v ${{ github.workspace }}/lab6-rootfs:/work -w /work buildroot-builder:lab6 \
+            bash -c "./build_rootfs.sh"
+
+      - name: Upload rootfs.ext4 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rootfs-ext4
+          path: lab6-rootfs/rootfs.ext4
