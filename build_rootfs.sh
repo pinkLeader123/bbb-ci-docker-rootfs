@@ -16,6 +16,17 @@ export OUTPUT_IMAGES_DIR="$BR_DIR/output/images"
 
 cd $WORKDIR
 
+# --- FIX: VOLUME PERMISSION DENIED ---
+# Cấp quyền sở hữu thư mục làm việc cho user đang thực thi script để cho phép wget/tar ghi file.
+export CURRENT_USER_ID=$(id -u)
+export CURRENT_GROUP_ID=$(id -g)
+echo "Fixing permissions for mounted volume. Current UID: $CURRENT_USER_ID, GID: $CURRENT_GROUP_ID"
+# Thay đổi quyền sở hữu thư mục mount cho người dùng hiện tại
+sudo chown -R $CURRENT_USER_ID:$CURRENT_GROUP_ID $WORKDIR || true 
+# Dùng chmod 777 như biện pháp dự phòng để đảm bảo quyền ghi
+sudo chmod -R 777 $WORKDIR || true 
+# -------------------------------------
+
 # 1) Tải và giải nén Buildroot nếu chưa có
 if [ ! -d "$BR_DIR" ]; then
   echo "Tải Buildroot $BUILDROOT_TAG từ $BR_URL..."
@@ -84,4 +95,4 @@ sudo umount $tmpmnt
 rmdir $tmpmnt
 
 echo "✅ Tạo xong rootfs.ext4 -> $IMG"
-cp $IMG $WORKDIR/rootfs.ext4
+cp $IMG "$WORKDIR/rootfs.ext4"
