@@ -12,17 +12,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # BƯỚC SỬA 1: Sử dụng thư mục hiện tại (./) làm context
       - name: Build Docker image for Buildroot
         run: docker build -t buildroot-builder:lab6 . 
 
       - name: Run Buildroot in container
         # mount workspace so artifact will be available after container exits
+        # BƯỚC SỬA 2: Mount thư mục gốc của repo (chứa Dockerfile, build_rootfs.sh)
         run: |
-          docker run --rm -v ${{ github.workspace }}/lab6-rootfs:/work -w /work buildroot-builder:lab6 \
+          # Ánh xạ thư mục gốc của repo (${{ github.workspace }}) vào /work bên trong container
+          docker run --rm -v ${{ github.workspace }}:/work -w /work buildroot-builder:lab6 \
             bash -c "./build_rootfs.sh"
 
       - name: Upload rootfs.ext4 artifact
         uses: actions/upload-artifact@v4
         with:
           name: rootfs-ext4
-          path: lab6-rootfs/rootfs.ext4
+          # File rootfs.ext4 sẽ được tạo ra ngay trong thư mục gốc của repo (lab6-rootfs)
+          path: rootfs.ext4
